@@ -68,21 +68,25 @@ function matchData(){
         let words = req.toLowerCase().split(" ").filter(w => w !== "");
         let currentMatches = masterData;
 
-        for(let i = 0; i < words.length; i++){
+        let isMatch = true;
 
-            let nextMatches = currentMatches.filter(m => {
-                let masterWords = m.toLowerCase().split(" ");
-                return masterWords.includes(words[i]);
-            });
+for(let i = 0; i < words.length; i++){
 
-            if(nextMatches.length > 0){
-                currentMatches = nextMatches;
-            } else {
-                break;
-            }
-        }
+    let nextMatches = currentMatches.filter(m => {
+        let masterWords = m.toLowerCase().split(" ");
+        return masterWords.includes(words[i]);
+    });
 
-        if(currentMatches.length > 0){
+    if(nextMatches.length > 0){
+        currentMatches = nextMatches;
+    } else {
+        isMatch = false;
+        break;
+    }
+}
+
+
+        if(isMatch && currentMatches.length > 0){
             html += `<tr>
                         <td>${req}</td>
                         <td>${currentMatches.join("<br>")}</td>
