@@ -1,32 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Progressive SKU Matcher</title>
-  <style>
-    body { font-family: Arial; margin:20px; }
-    table { border-collapse: collapse; width:100%; margin-top:20px;}
-    th, td { border:1px solid #ddd; padding:8px; }
-    th { background:#f2f2f2; }
-  </style>
-</head>
-<body>
-
-<h2>Progressive Word Matching Tool</h2>
-
-Requirement Sheet:
-<input type="file" id="reqFile"><br><br>
-
-Master Sheet:
-<input type="file" id="masterFile"><br><br>
-
-<button onclick="matchData()">Match</button>
-
-<div id="result"></div>
-
-<script>
-
 let requirementData = [];
 let masterData = [];
+let masterIndex = {};
 
 document.getElementById("reqFile").addEventListener("change", function(e){
     readFile(e.target.files[0], function(data){
@@ -38,6 +12,7 @@ document.getElementById("reqFile").addEventListener("change", function(e){
 document.getElementById("masterFile").addEventListener("change", function(e){
     readFile(e.target.files[0], function(data){
         masterData = data;
+        buildIndex();
         alert("Master loaded: " + data.length);
     });
 });
@@ -53,6 +28,17 @@ function readFile(file, callback){
     reader.readAsText(file);
 }
 
+function buildIndex(){
+    masterIndex = {};
+    masterData.forEach(item => {
+        let firstWord = item.toLowerCase().split(" ")[0];
+        if(!masterIndex[firstWord]){
+            masterIndex[firstWord] = [];
+        }
+        masterIndex[firstWord].push(item);
+    });
+}
+
 function matchData(){
 
     if(requirementData.length === 0 || masterData.length === 0){
@@ -66,25 +52,34 @@ function matchData(){
     requirementData.forEach(req => {
 
         let words = req.toLowerCase().split(" ").filter(w => w !== "");
-        let currentMatches = masterData;
+        let firstWord = words[0];
+
+        let currentMatches = masterIndex[firstWord] || [];
+
+        if(currentMatches.length === 0){
+            html += `<tr>
+                        <td>${req}</td>
+                        <td>No Match</td>
+                     </tr>`;
+            return;
+        }
 
         let isMatch = true;
 
-for(let i = 0; i < words.length; i++){
+        for(let i = 1; i < words.length; i++){
 
-    let nextMatches = currentMatches.filter(m => {
-        let masterWords = m.toLowerCase().split(" ");
-        return masterWords.includes(words[i]);
-    });
+            let nextMatches = currentMatches.filter(m => {
+                let masterWords = m.toLowerCase().split(" ");
+                return masterWords.includes(words[i]);
+            });
 
-    if(nextMatches.length > 0){
-        currentMatches = nextMatches;
-    } else {
-        isMatch = false;
-        break;
-    }
-}
-
+            if(nextMatches.length > 0){
+                currentMatches = nextMatches;
+            } else {
+                isMatch = false;
+                break;
+            }
+        }
 
         if(isMatch && currentMatches.length > 0){
             html += `<tr>
@@ -103,8 +98,3 @@ for(let i = 0; i < words.length; i++){
     html += "</table>";
     document.getElementById("result").innerHTML = html;
 }
-
-</script>
-
-</body>
-</html>
