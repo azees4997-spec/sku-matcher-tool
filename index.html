@@ -20,7 +20,36 @@ Master Sheet:
 <input type="file" id="masterFile"><br><br>
 
 <button onclick="matchData()">Match</button>
-<button onclick="downloadCSV()">Download Result</button>
+function downloadCSV(){
+
+    if(finalResults.length === 0){
+        alert("Run Match first");
+        return;
+    }
+
+    let csvContent = "Requirement SKU,Matched Master SKUs\n";
+
+    finalResults.forEach(row => {
+        csvContent += `"${row[0]}","${row[1]}"\n`;
+    });
+
+    // Create hidden textarea for safer download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+
+    if (navigator.msSaveBlob) {
+        // For old IE
+        navigator.msSaveBlob(blob, "matched_results.csv");
+    } else {
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute("download", "matched_results.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
 
 
 <div id="result"></div>
