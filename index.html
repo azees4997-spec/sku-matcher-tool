@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Optimized Progressive SKU Matcher</title>
+  <title>Advanced SKU Matching Tool</title>
   <style>
     body { font-family: Arial; margin:20px; }
     table { border-collapse: collapse; width:100%; margin-top:20px;}
     th, td { border:1px solid #ddd; padding:8px; vertical-align:top; }
     th { background:#f2f2f2; }
-    button { margin-right:10px; padding:6px 12px; }
+    button { margin-right:10px; padding:6px 12px; cursor:pointer; }
+    .summary { margin-top:15px; font-weight:bold; }
   </style>
 </head>
 <body>
 
-<h2>Optimized Progressive Word Matching Tool</h2>
+<h2>Advanced Progressive SKU Matching Tool</h2>
 
 Requirement Sheet:
 <input type="file" id="reqFile"><br><br>
@@ -23,6 +24,7 @@ Master Sheet:
 <button onclick="matchData()">Match</button>
 <button onclick="downloadCSV()">Download Result</button>
 
+<div class="summary" id="summary"></div>
 <div id="result"></div>
 
 <script>
@@ -71,96 +73,4 @@ function buildIndex(){
 
 function matchData(){
 
-    if(requirementData.length === 0 || masterData.length === 0){
-        alert("Upload both files first");
-        return;
-    }
-
-    finalResults = [];
-
-    let html = "<table>";
-    html += "<tr><th>Requirement SKU</th><th>Matched Master SKUs</th></tr>";
-
-    requirementData.forEach(req => {
-
-        let words = req.toLowerCase().split(" ").filter(w => w !== "");
-        let firstWord = words[0];
-
-        let currentMatches = masterIndex[firstWord] || [];
-
-        if(currentMatches.length === 0){
-            finalResults.push([req, "No Match"]);
-            html += `<tr>
-                        <td>${req}</td>
-                        <td>No Match</td>
-                     </tr>`;
-            return;
-        }
-
-        let isMatch = true;
-
-        for(let i = 1; i < words.length; i++){
-
-            let nextMatches = currentMatches.filter(m => {
-                let masterWords = m.toLowerCase().split(" ");
-                return masterWords.includes(words[i]);
-            });
-
-            if(nextMatches.length > 0){
-                currentMatches = nextMatches;
-            } else {
-                isMatch = false;
-                break;
-            }
-        }
-
-        if(isMatch && currentMatches.length > 0){
-            finalResults.push([req, currentMatches.join(" | ")]);
-            html += `<tr>
-                        <td>${req}</td>
-                        <td>${currentMatches.join("<br>")}</td>
-                     </tr>`;
-        } else {
-            finalResults.push([req, "No Match"]);
-            html += `<tr>
-                        <td>${req}</td>
-                        <td>No Match</td>
-                     </tr>`;
-        }
-
-    });
-
-    html += "</table>";
-    document.getElementById("result").innerHTML = html;
-}
-
-function downloadCSV(){
-
-    if(finalResults.length === 0){
-        alert("Run Match first");
-        return;
-    }
-
-    let csvContent = "Requirement SKU,Matched Master SKUs\n";
-
-    finalResults.forEach(row => {
-        csvContent += `"${row[0]}","${row[1]}"\n`;
-    });
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "matched_results.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-}
-
-</script>
-
-</body>
-</html>
+    if(requiremen
