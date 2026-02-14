@@ -8,7 +8,6 @@
     th, td { border:1px solid #ddd; padding:8px; vertical-align:top; }
     th { background:#f2f2f2; }
     button { margin-right:10px; padding:6px 12px; cursor:pointer; }
-    .summary { margin-top:15px; font-weight:bold; }
   </style>
 </head>
 <body>
@@ -21,10 +20,10 @@ Requirement Sheet:
 Master Sheet:
 <input type="file" id="masterFile"><br><br>
 
-<button onclick="matchData()">Match</button>
-<button onclick="downloadCSV()">Download Result</button>
+<button id="matchBtn">Match</button>
+<button id="downloadBtn">Download Result</button>
 
-<div class="summary" id="summary"></div>
+<div id="summary" style="margin-top:15px;font-weight:bold;"></div>
 <div id="result"></div>
 
 <script>
@@ -48,6 +47,9 @@ document.getElementById("masterFile").addEventListener("change", function(e){
         alert("Master loaded: " + data.length);
     });
 });
+
+document.getElementById("matchBtn").addEventListener("click", matchData);
+document.getElementById("downloadBtn").addEventListener("click", downloadCSV);
 
 function readFile(file, callback){
     const reader = new FileReader();
@@ -73,4 +75,88 @@ function buildIndex(){
 
 function matchData(){
 
-    if(requiremen
+    if(requirementData.length === 0 || masterData.length === 0){
+        alert("Upload both files first");
+        return;
+    }
+
+    finalResults = [];
+    let totalNoMatch = 0;
+
+    let html = "<table>";
+    html += "<tr><th>Requirement SKU</th><th>Matched Master SKUs</th></tr>";
+
+    requirementData.forEach(req => {
+
+        let words = req.toLowerCase().split(" ").filter(w => w !== "");
+        let firstWord = words[0];
+
+        let currentMatches = masterIndex[firstWord] || [];
+
+        if(currentMatches.length === 0){
+            totalNoMatch++;
+            finalResults.push([req, "No Match"]);
+            html += `<tr>
+                        <td>${req}</td>
+                        <td style="color:red;">No Match</td>
+                     </tr>`;
+            return;
+        }
+
+        for(let i = 1; i < words.length; i++){
+
+            let nextMatches = currentMatches.filter(m => {
+                let masterWords = m.toLowerCase().split(" ");
+                return masterWords.includes(words[i]);
+            });
+
+            if(nextMatches.length > 0){
+                currentMatches = nextMatches;
+            }
+        }
+
+        finalResults.push([req, currentMatches.join(" | ")]);
+        html += `<tr>
+                    <td>${req}</td>
+                    <td>${currentMatches.join("<br>")}</td>
+                 </tr>`;
+    });
+
+    html += "</table>";
+
+    document.getElementById("result").innerHTML = html;
+    document.getElementById("summary").innerHTML =
+        "Total Requirement: " + requirementData.length +
+        " | No Match: " + totalNoMatch;
+}
+
+function downloadCSV(){
+
+    if(finalResults.length === 0){
+        alert("Run Match first");
+        return;
+    }
+
+    let csvContent = "Requirement SKU,Matched Master SKUs\n";
+
+    finalResults.forEach(row => {
+        csvContent += `"${row[0]}","${row[1]}"\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "matched_results.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+}
+
+</script>
+
+</body>
+</html>
