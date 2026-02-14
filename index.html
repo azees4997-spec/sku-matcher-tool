@@ -5,8 +5,9 @@
   <style>
     body { font-family: Arial; margin:20px; }
     table { border-collapse: collapse; width:100%; margin-top:20px;}
-    th, td { border:1px solid #ddd; padding:8px; }
+    th, td { border:1px solid #ddd; padding:8px; vertical-align:top; }
     th { background:#f2f2f2; }
+    button { margin-right:10px; padding:6px 12px; }
   </style>
 </head>
 <body>
@@ -20,37 +21,7 @@ Master Sheet:
 <input type="file" id="masterFile"><br><br>
 
 <button onclick="matchData()">Match</button>
-function downloadCSV(){
-
-    if(finalResults.length === 0){
-        alert("Run Match first");
-        return;
-    }
-
-    let csvContent = "Requirement SKU,Matched Master SKUs\n";
-
-    finalResults.forEach(row => {
-        csvContent += `"${row[0]}","${row[1]}"\n`;
-    });
-
-    // Create hidden textarea for safer download
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-
-    if (navigator.msSaveBlob) {
-        // For old IE
-        navigator.msSaveBlob(blob, "matched_results.csv");
-    } else {
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.setAttribute("download", "matched_results.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-}
-
-
+<button onclick="downloadCSV()">Download Result</button>
 
 <div id="result"></div>
 
@@ -59,6 +30,7 @@ function downloadCSV(){
 let requirementData = [];
 let masterData = [];
 let masterIndex = {};
+let finalResults = [];
 
 document.getElementById("reqFile").addEventListener("change", function(e){
     readFile(e.target.files[0], function(data){
@@ -104,6 +76,8 @@ function matchData(){
         return;
     }
 
+    finalResults = [];
+
     let html = "<table>";
     html += "<tr><th>Requirement SKU</th><th>Matched Master SKUs</th></tr>";
 
@@ -115,6 +89,7 @@ function matchData(){
         let currentMatches = masterIndex[firstWord] || [];
 
         if(currentMatches.length === 0){
+            finalResults.push([req, "No Match"]);
             html += `<tr>
                         <td>${req}</td>
                         <td>No Match</td>
@@ -140,11 +115,13 @@ function matchData(){
         }
 
         if(isMatch && currentMatches.length > 0){
+            finalResults.push([req, currentMatches.join(" | ")]);
             html += `<tr>
                         <td>${req}</td>
                         <td>${currentMatches.join("<br>")}</td>
                      </tr>`;
         } else {
+            finalResults.push([req, "No Match"]);
             html += `<tr>
                         <td>${req}</td>
                         <td>No Match</td>
@@ -157,8 +134,33 @@ function matchData(){
     document.getElementById("result").innerHTML = html;
 }
 
+function downloadCSV(){
+
+    if(finalResults.length === 0){
+        alert("Run Match first");
+        return;
+    }
+
+    let csvContent = "Requirement SKU,Matched Master SKUs\n";
+
+    finalResults.forEach(row => {
+        csvContent += `"${row[0]}","${row[1]}"\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "matched_results.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+}
+
 </script>
 
 </body>
 </html>
-
