@@ -1,3 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Optimized Progressive SKU Matcher</title>
+  <style>
+    body { font-family: Arial; margin:20px; }
+    table { border-collapse: collapse; width:100%; margin-top:20px;}
+    th, td { border:1px solid #ddd; padding:8px; }
+    th { background:#f2f2f2; }
+  </style>
+</head>
+<body>
+
+<h2>Optimized Progressive Word Matching Tool</h2>
+
+Requirement Sheet:
+<input type="file" id="reqFile"><br><br>
+
+Master Sheet:
+<input type="file" id="masterFile"><br><br>
+
+<button onclick="matchData()">Match</button>
+
+<div id="result"></div>
+
+<script>
+
 let requirementData = [];
 let masterData = [];
 let masterIndex = {};
@@ -98,3 +125,8 @@ function matchData(){
     html += "</table>";
     document.getElementById("result").innerHTML = html;
 }
+
+</script>
+
+</body>
+</html>
